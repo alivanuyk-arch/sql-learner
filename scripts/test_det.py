@@ -1,104 +1,42 @@
-# test_detector.py
-import json
-from universal_schema_detector import get_schema
+"""
+test_schema.py - Правильный тест universal_schema_detector.py
+"""
 
-def test_simple_dict():
-    """Простой словарь"""
-    data = {"id": 1, "name": "test", "price": 99.9}
-    result = get_schema(data)
-    print("✅ Словарь:", result)
-    assert result == {"id": "int", "name": "str", "price": "float"}
+import os
+import sys
+from pathlib import Path
 
-def test_nested_dict():
-    """Вложенный словарь"""
-    data = {
-        "video": {
-            "id": 1,
-            "stats": {"views": 15000}
-        }
-    }
-    result = get_schema(data)
-    print("✅ Вложенный:", result)
-    # Должно быть: {"video": {"id": "int", "stats": {"views": "int"}}}
+# Добавляем путь
+sys.path.append(str(Path(__file__).parent))
 
-def test_list():
-    """Список объектов"""
-    data = [
-        {"id": 1, "title": "Video 1"},
-        {"id": 2, "title": "Video 2"}
-    ]
-    result = get_schema(data)
-    print("✅ Список:", result)
-    # Должно быть: [{"id": "int", "title": "str"}]
+from universal_schema_detector import detect_schema, get_tables
+from dotenv import load_dotenv
 
-def test_json_string():
-    """JSON строка"""
-    data = '{"users": [{"name": "Ivan", "age": 30}]}'
-    result = get_schema(data)
-    print("✅ JSON строка:", result)
+# Загружаем .env
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(env_path)
 
-def test_date():
-    """Дата"""
-    data = {"date": "2025-11-15", "event": "meeting"}
-    result = get_schema(data)
-    print("✅ Дата:", result)
+DB_CONFIG = {
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': os.getenv('DB_PORT', '5432'),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', '123'),
+    'database': os.getenv('DB_NAME', 'video_analytics')
+}
 
-def test_complex():
-    """Сложная структура"""
-    data = {
-        "videos": [
-            {
-                "id": 1,
-                "title": "Cat",
-                "stats": {
-                    "views": 15000,
-                    "likes": 450,
-                    "daily": [5000, 6000, 4000]
-                },
-                "created_at": "2025-11-15"
-            }
-        ],
-        "total": 1
-    }
-    result = get_schema(data)
-    print("✅ Сложная:", json.dumps(result, indent=2, ensure_ascii=False))
-
-def test_error_cases():
-    """Ошибки"""
-    print("\n=== ТЕСТЫ НА ОШИБКИ ===")
+def main():
+    print("="*60)
+    print("ТЕСТ universal_schema_detector.py")
+    print("="*60)
     
-    # Пустые данные
-    try:
-        result = get_schema(None)
-        print("✅ None:", result)
-    except Exception as e:
-        print("❌ None упал:", e)
+    # Получаем схему
+    schema = detect_schema(DB_CONFIG)
     
-    # Пустой список
-    try:
-        result = get_schema([])
-        print("✅ Пустой список:", result)
-    except Exception as e:
-        print("❌ Пустой список упал:", e)
+    # Выводим красиво
+    for table_name, columns in schema.items():
+        print(f"\n📁 {table_name}:")
+        for col_name, col_type in columns.items():
+            print(f"  - {col_name}: {col_type}")
 
 if __name__ == "__main__":
-    print("="*50)
-    print("ТЕСТИРОВАНИЕ УНИВЕРСАЛЬНОГО ДЕТЕКТОРА")
-    print("="*50)
-    
-    tests = [
-        test_simple_dict,
-        test_nested_dict,
-        test_list,
-        test_json_string,
-        test_date,
-        test_complex,
-        test_error_cases
-    ]
-    
-    for test in tests:
-        try:
-            test()
-        except Exception as e:
-            print(f"❌ {test.__name__} УПАЛ: {e}")
-        print("-"*40)
+    main()
