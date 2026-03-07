@@ -84,7 +84,7 @@ class CorrectionLearner:
         self._extract_pattern(record)
         self._update_feedback_analysis(user_feedback)
         
-        # Сохраняем
+        
         self._save_data()
         
         logger.info(f"Added correction: {correction_type} for '{original_query[:50]}...'")
@@ -137,10 +137,8 @@ class CorrectionLearner:
         if not sql:
             return ""
         
-        # Приводим к верхнему регистру
+       
         normalized = sql.upper()
-        
-        # Удаляем лишние пробелы
         normalized = re.sub(r'\s+', ' ', normalized)
         
         # Удаляем значения
